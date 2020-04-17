@@ -1,24 +1,23 @@
-FROM gradle:jdk-alpine
+FROM openjdk:8-jdk-slim
 
-WORKDIR /home/gradle/project
+RUN mkdir /project
+
+WORKDIR /project
 
 EXPOSE 8080
 
 USER root
 
-RUN apk update
+COPY . /project
 
-ENV GRADLE_USER_HOME /home/gradle/project
+RUN ls -la
 
-COPY . /home/gradle/project
-
-RUN gradle build
-
+RUN ./gradlew build -x test
 
 FROM java:jre-alpine
 
-WORKDIR /home/gradle/project
+WORKDIR /project
 
-COPY --from=0 /home/gradle/project/build/libs/project-0.0.1-SNAPSHOT.jar .
+COPY --from=0 /project/build/libs/project-0.0.1-SNAPSHOT.jar .
 
 ENTRYPOINT java -jar project-0.0.1-SNAPSHOT.jar
