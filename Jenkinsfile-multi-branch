@@ -1,0 +1,82 @@
+import java.time.*
+
+pipeline {
+
+ agent any
+
+ stages {
+  // stage("Checkout") {
+  //  steps {
+  //   git branch: 'master',
+  //    url: 'https://github.com/lwwwr/backend-devops-training-project.git'
+  //  }
+  // }
+
+
+  stage("Compile") {
+   steps {
+    sh './gradlew compileJava -x test'
+   }
+  }
+
+  stage('Quality') {
+   steps {
+    script {
+     def scannerHome = tool 'sonar';
+     withSonarQubeEnv("alavr-sq") {
+      withCredentials([string(credentialsId: 'alavr-sonarqube', variable: 'sonar_token')]) {
+
+       sh "${tool('sonar')}/bin/sonar-scanner \
+                   -Dsonar.projectKey=backend \
+                   -Dsonar.host.url=http://sonar-qube.alavr.test.coherentprojects.net \
+                   -Dsonar.login=${sonar_token} \
+                   -Dsonar.java.binaries=./build/classes \
+                   -Dsonar.branch.name = ${BRANCH_NAME}"
+
+      }
+     }
+    }
+   }
+  }
+
+  stage("Test") {
+   steps {
+    sh './gradlew test'
+   }
+  }
+
+  stage('Build') {
+   steps {
+    sh "./gradlew build -x test -PprojectVersion=${BRANCH_NAME}_${BUILD_NUMBER}"
+    sh "ls -l ./build/libs"
+   }
+  }
+
+  stage('Push') {
+   steps {
+
+    nexusPublisher nexusInstanceId: 'alavr-nexus-repo',
+     nexusRepositoryId: 'backend',
+     packages: [
+      [
+       $class: 'MavenPackage',
+       mavenAssetList: [
+        [classifier: '', extension: '', filePath: "./build/libs/backend-training-${BRANCH_NAME}_${BUILD_NUMBER}.jar"]
+       ],
+       mavenCoordinate: [groupId: 'backend-training-multi-branch-pipeline', artifactId: 'backend-training', version: "${BRANCH_NAME}_${BUILD_NUMBER}", packaging: 'jar']
+      ]
+     ]
+   }
+  }
+ }
+
+
+
+ post {
+  always {
+   sh "chown -R \$(stat -c '%u:%g' .) \$WORKSPACE"
+   cleanWs()
+  }
+ }
+
+}
