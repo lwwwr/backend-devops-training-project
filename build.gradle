@@ -24,7 +24,7 @@ dependencyManagement {
 }
 
 archivesBaseName = 'backend-training'
-version = '0.0.1-SNAPSHOT'
+version = project.hasProperty('version') ? project.getProperty('version') : '0.0.1-SNAPSHOT'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
