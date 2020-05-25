@@ -16,7 +16,7 @@ WORKDIR /home/gradleuser/src
 
 EXPOSE 8080
 
-COPY --from=builder /home/gradleuser/src/build/libs/src-0.0.1-SNAPSHOT.jar .
+COPY --from=builder /home/gradleuser/src/build/libs/backend-training-0.0.1-RELEASE.jar .
 
 #ARG DB_URL 
 #ARG DB_USERNAME 
@@ -32,4 +32,4 @@ COPY --from=builder /home/gradleuser/src/build/libs/src-0.0.1-SNAPSHOT.jar .
 #ENV DB_NAME=${DB_NAME:-"postgres"}
 #ENV JDBC_DRIVER=${JDBC_DRIVER:-"postgresql"}
 
-ENTRYPOINT java -jar src-0.0.1-SNAPSHOT.jar
+ENTRYPOINT java -jar backend-training-0.0.1-RELEASE.jar
