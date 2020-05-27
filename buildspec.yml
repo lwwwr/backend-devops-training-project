@@ -53,7 +53,8 @@ phases:
       - docker image ls
       - docker push $REPOSITORY_URI:$IMAGE_LATEST_TAG 
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - printf '[{"name":"alavr-backend","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_LATEST_TAG > imagedefinitions.json 
+      - printf '[{"name":"alavr-backend-docker","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_LATEST_TAG > imagedefinitions.json 
       - cat imagedefinitions.json
 artifacts:
   files: imagedefinitions.json
+  
