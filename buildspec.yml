@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    PROJECT_BUILD_IMAGE_NAME: "242906888793.dkr.ecr.us-east-1.amazonaws.com/alavr-backend:latest"
+    PROJECT_BUILD_IMAGE_NAME: "242906888793.dkr.ecr.us-east-1.amazonaws.com/alavr-backend"
     PROJECT_BUILD_VERSION: "latest"
     PROJECT_BUILD_IMAGE_ENV: "-prd"
   parameter-store:
@@ -45,7 +45,6 @@ phases:
       - cd $DOCKER_PATH
       - echo Build docker image 
       - docker build -t $REPOSITORY_URI:$IMAGE_LATEST_TAG . 
-      - echo tag docker image 
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG 
   post_build:
     commands:
