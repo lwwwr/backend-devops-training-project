@@ -13,7 +13,12 @@ env:
     DB_NAME: "/alavr/DB_NAME"
     JDBC_DRIVER: "/alavr/JDBC_DRIVER"
   exported-variables: 
-    - API_URL
+    - DB_URL
+    - DB_USERNAME
+    - DB_PASSWORD
+    - DB_PORT
+    - DB_NAME
+    - JDBC_DRIVER
     - PROJECT_BUILD_IMAGE_NAME
     - PROJECT_BUILD_VERSION
     - PROJECT_BUILD_IMAGE_ENV
