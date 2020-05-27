@@ -1,0 +1,55 @@
+version: 0.2
+
+env:
+  variables:
+    PROJECT_BUILD_IMAGE_NAME: "242906888793.dkr.ecr.us-east-1.amazonaws.com/alavr-backend:latest"
+    PROJECT_BUILD_VERSION: "latest"
+    PROJECT_BUILD_IMAGE_ENV: "-prd"
+  parameter-store:
+    DB_URL: "/alavr/DB_URL"
+    DB_USERNAME: "/alavr/DB_USERNAME"
+    DB_PASSWORD: "/alavr/DB_PASSWORD"
+    DB_PORT: "/alavr/DB_PORT"
+    DB_NAME: "/alavr/DB_NAME"
+    JDBC_DRIVER: "/alavr/JDBC_DRIVER"
+  exported-variables: 
+    - API_URL
+    - PROJECT_BUILD_IMAGE_NAME
+    - PROJECT_BUILD_VERSION
+    - PROJECT_BUILD_IMAGE_ENV
+
+phases:
+  install:
+    runtime-version:
+      docker: 18
+  pre_build:
+    commands:
+      - echo Loggin in to Amazon ECR... 
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) 
+      - REPOSITORY_URI=$PROJECT_BUILD_IMAGE_NAME
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7) 
+      - PROJECT_BUILD_IMAGE_VERSION=${COMMIT_HASH:=latest}
+      - IMAGE_TAG=$PROJECT_BUILD_IMAGE_VERSION$PROJECT_BUILD_IMAGE_ENV
+      - IMAGE_LATEST_TAG=$PROJECT_BUILD_VERSION$PROJECT_BUILD_IMAGE_ENV
+      - DOCKER_PATH="."
+  build:
+    commands:
+      - echo Build started on `date` 
+      - ls -la
+      - echo $DOCKER_PATH
+      - cd $DOCKER_PATH
+      - echo Build docker image 
+      - docker build -t $REPOSITORY_URI:$IMAGE_LATEST_TAG . 
+      - echo tag docker image 
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG 
+  post_build:
+    commands:
+      - echo Build completed on `date` 
+      - echo Pushing the Docker image... 
+      - docker image ls
+      - docker push $REPOSITORY_URI:$IMAGE_LATEST_TAG 
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - printf '[{"name":"alavr-backend","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_LATEST_TAG > imagedefinitions.json 
+      - cat imagedefinitions.json
+  artifacts:
+    files: imagedefinitions.json
