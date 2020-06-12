@@ -1,0 +1,64 @@
+pipeline {
+ agent {
+  docker {
+   image 'cytopia/ansible:latest-aws'
+  }
+ }
+
+
+ parameters {
+  gitParameter branchFilter: 'origin/(.*)', defaultValue: 'dev', name: 'BRANCH', type: 'PT_BRANCH'
+  string(name: 'VERSION', description: "Artefact version")
+  string(name: 'DB_URL')
+  string(name: 'DB_USERNAME')
+  string(name: 'DB_PASSWORD')
+  string(name: 'DB_PORT')
+  string(name: 'DB_NAME')
+  string(name: 'JDBC_DRIVER')
+ }
+
+ stages {
+  stage('Pull playbook and run deploy') {
+   steps {
+    script {
+
+     dir('ansible_dir') {
+      git(
+       url: 'https://github.com/lwwwr/ansible-devops-training-project',
+       credentialsId: 'alavr-github',
+       branch: "master"
+      )
+      withCredentials([usernamePassword(credentialsId: 'alavr-nexus', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+       withEnv(["DB_URL=${params.DB_URL}",
+        "JDBC_DRIVER=${params.JDBC_DRIVER}",
+        "DB_USERNAME=${params.DB_USERNAME}",
+        "DB_PASSWORD=${params.DB_PASSWORD}",
+        "DB_PORT=${params.DB_PORT}",
+        "DB_NAME=${params.DB_NAME}"
+       ]) {
+        ansiblePlaybook(
+         colorized: true,
+         inventory: "./inventory/${params.BRANCH}",
+         playbook: 'deploy_jar.yml',
+         disableHostKeyChecking: true,
+         credentialsId: 'alavr_temp_ssh',
+         extras: '-vvvv',
+         extraVars: [
+          hosts: "backend",
+          branch: "${params.BRANCH}",
+          version: "${params.VERSION}",
+          nexus_username: "${USERNAME}",
+          nexus_password: "${PASSWORD}",
+          ansible_user: "ubuntu",
+
+         ]
+        )
+       }
+      }
+
+     }
+    }
+   }
+  }
+ }
+}
