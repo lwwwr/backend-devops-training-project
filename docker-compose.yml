@@ -1,13 +1,26 @@
 version: '3'
 services:
+
+  database:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: helloworld
+      POSTGRES_PASSWORD: helloworld
+      POSTGRES_DB: helloworld
+
   helloworld:
     build: .
     ports: 
-      - "80:80"
+      - "8080:8080"
+    depends_on:
+      - 'database'
     environment:
-      - DB_URL="DB_URL"
-      - DB_USERNAME="DB_USERNAME"
-      - DB_PASSWORD="DB_PASSWORD"
-      - DB_PORT="DB_PORT"
-      - DB_NAME="DB_NAME"
-      - JDBC_DRIVER="JDBC_DRIVER"
+      DB_URL: database
+      DB_USERNAME: helloworld
+      DB_PASSWORD: helloworld
+      DB_PORT: 5432
+      DB_NAME: helloworld
+      JDBC_DRIVER: postgresql
+      # - JDBC_DRIVER="JDBC_DRIVER"
